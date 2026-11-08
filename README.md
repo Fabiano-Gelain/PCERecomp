@@ -10,7 +10,7 @@ original, and that is checked automatically.
 
 No ROM, disc image, BIOS or code generated from a game is distributed. A game project brings its own configuration
 and uses PCERecomp as a library and a set of tools. It is used by
-[YsRecomp](https://github.com/GITHUB_USER/YsRecomp), an enhanced PC version of a TurboGrafx-CD game.
+[YsRecomp](https://github.com/Fabiano-Gelain/YsRecomp), an enhanced PC version of a TurboGrafx-CD game.
 
 ## What is in it
 
