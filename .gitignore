@@ -1,0 +1,33 @@
+# Protected content — NEVER commit (ROMs, discs and BIOS live in each game's project)
+*.pce
+*.cue
+*.bin
+*.iso
+*.img
+*.chd
+syscard*
+
+# Cloned external references (see docs/hardware/INDEX.md to restore)
+reference/
+
+# Build
+build/
+out/
+tools/reference_trace/build/
+*.obj
+*.exe
+*.pdb
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Test/debug outputs
+*.trace
+*.log
+tests/output/
+
+# Editor
+.vscode/
+.vs/
