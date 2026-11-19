@@ -16,6 +16,12 @@ if(MSVC)
     add_link_options($<$<CONFIG:Release>:/DEBUG> $<$<CONFIG:Release>:/OPT:REF> $<$<CONFIG:Release>:/OPT:ICF>)
     # C runtime linked into the .exe (/MT): runs without the "Visual C++ Redistributable".
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    # GCC/Clang: enable warnings, debug info in Release for profiler
+    add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-missing-field-initializers)
+    add_compile_options($<$<CONFIG:Release>:-g>)
+    # Link with -rdynamic so profiler can resolve symbols
+    add_link_options($<$<CONFIG:Release>:-rdynamic>)
 endif()
 
 # Cross-file optimization (LTCG) in Release: the hardware clock calls small functions from several files on
@@ -53,6 +59,9 @@ add_library(pce_core STATIC
     runtime/cd/scsi.c
     runtime/util/u8file.c)
 target_include_directories(pce_core PUBLIC runtime)
+if(UNIX)
+    target_link_libraries(pce_core PUBLIC m)
+endif()
 
 # Input script of recorded sessions (--input/--record), used by the game programs and by the tools.
 add_library(pce_input STATIC tools/trace/input_script.c)
@@ -64,6 +73,29 @@ add_library(trace_profiler STATIC tools/trace/profiler.c)
 target_include_directories(trace_profiler PUBLIC tools/trace)
 if(WIN32)
     target_link_libraries(trace_profiler PUBLIC dbghelp winmm)
+elseif(UNIX AND NOT APPLE)
+    # Linux: use libunwind for stack walking, libdw for debug info, libdl for dladdr
+    find_library(UNWIND_LIB unwind)
+    find_library(DW_LIB dw)
+    find_library(DL_LIB dl)
+    if(UNWIND_LIB)
+        target_link_libraries(trace_profiler PUBLIC ${UNWIND_LIB})
+    endif()
+    if(DW_LIB)
+        target_link_libraries(trace_profiler PUBLIC ${DW_LIB})
+    endif()
+    if(DL_LIB)
+        target_link_libraries(trace_profiler PUBLIC ${DL_LIB})
+    endif()
+    # pthread for thread handling
+    find_package(Threads REQUIRED)
+    target_link_libraries(trace_profiler PUBLIC Threads::Threads)
+elseif(APPLE)
+    # macOS: use libunwind
+    find_library(UNWIND_LIB unwind)
+    if(UNWIND_LIB)
+        target_link_libraries(trace_profiler PUBLIC ${UNWIND_LIB})
+    endif()
 endif()
 
 # pce_trace: instruction-by-instruction trace and console frames (tools/trace/pce_trace.c; pce_trace --help). A game
@@ -110,8 +142,14 @@ if(PYTHON_EXE)
     if(PCE_TEST_CUE)
         set(PCE_CD_TEST_ARGS --cue "${PCE_TEST_CUE}")
     endif()
+    # gg_cdinfo path: Windows has Release/ subdir and .exe; Linux/macOS are single-config
+    if(WIN32)
+        set(GG_CDINFO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/reference_trace/build/Release/gg_cdinfo.exe")
+    else()
+        set(GG_CDINFO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/reference_trace/build/gg_cdinfo")
+    endif()
     add_test(NAME cd_image COMMAND ${PYTHON_EXE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/cd/run_cd_test.py"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tools/reference_trace/build/Release/gg_cdinfo.exe"
+        "${GG_CDINFO_PATH}"
         $<TARGET_FILE:cd_info> "${CMAKE_BINARY_DIR}/cd_output" ${PCE_CD_TEST_ARGS})
     set_tests_properties(cd_image PROPERTIES SKIP_RETURN_CODE 77 LABELS console)
     # Tools without any game: pce_trace with a synthetic ROM (trace, frames, --hashes) and each tool's --help.

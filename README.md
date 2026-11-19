@@ -79,26 +79,31 @@ hands it to the interpreter. A game project can log what falls back to see wheth
   BIOS file, with recorded sessions replayed in lockstep as regression tests.
 - The HuCard path was validated earlier on a simpler game (about 1.4 billion instructions in lockstep with no
   divergence) before the work moved to CD-ROM².
-- Windows only for now (MSVC). The console runtime is plain C with no platform code; the window, input and audio
-  belong to the game project.
+- **Windows** (MSVC) and **Linux** (GCC/Clang) are supported. The console runtime is plain C with no platform code; the window, input and audio belong to the game project.
 - Not a general-purpose emulator: only what the games in use needed is implemented and verified. Known hardware gaps
   are listed in [docs/hardware/INDEX.md](docs/hardware/INDEX.md#known-gaps).
 
 ## Requirements
 
-- Windows 10 or 11, 64-bit
-- Visual Studio 2022 Build Tools (MSVC); the CMake that comes with them does not need to be in `PATH`, `build.ps1`
-  finds it
-- Python 3.14 (the recompiler and the test scripts)
-- Optional, for reference traces: the Geargrafx sources in `reference/` and `.\tools\reference_trace\build.ps1`
-  (see [docs/hardware/INDEX.md](docs/hardware/INDEX.md#how-to-restore-reference))
+- **Windows**: Windows 10 or 11, 64-bit; Visual Studio 2022 Build Tools (MSVC); the CMake that comes with them does not need to be in `PATH`, `build.ps1` finds it
+- **Linux**: GCC or Clang; CMake; Python 3.10+; libunwind (for profiler)
+- Python 3.10+ (the recompiler and the test scripts)
+- Optional, for reference traces: the Geargrafx sources in `reference/` and `./tools/reference_trace/build.sh` (Linux) or `.\tools\reference_trace\build.ps1` (Windows) (see [docs/hardware/INDEX.md](docs/hardware/INDEX.md#how-to-restore-reference))
 
 ## Build and test
 
+**Windows (PowerShell):**
 ```powershell
 .\build.ps1          # Release build in build\ (quiet: only warnings, errors and a summary)
 .\build.ps1 -Test    # build and run the tests
 .\build.ps1 -Verbose # show everything
+```
+
+**Linux/macOS (bash):**
+```bash
+./build.sh          # Release build in build/ (quiet: only warnings, errors and a summary)
+./build.sh -Test    # build and run the tests
+./build.sh -Verbose # show everything
 ```
 
 Tests that need files you do not have (the CPU test data, a game disc) are skipped. Every tool answers `--help`; the
