@@ -449,7 +449,7 @@ static int dump_frame(Pce *pce, long frames, const char *path)
                 uint16_t after = g_watch_vram >= 0 ? pce->vdc.vram[g_watch_vram] : pce->ram[g_watch_ram];
                 if (after != before) {
                     if (g_watch_vram >= 0)
-                        printf("frame %ld: VRAM %04X %04X -> %04X; last instructions:", i + 1, g_watch_vram, before,
+                        printf("frame %ld: VRAM %04X %04X -> %04X; last instructions:", i + 1, (unsigned)g_watch_vram, before,
                                after);
                     else
                         printf("frame %ld: RAM %04X %02X -> %02X; last instructions:", i + 1,
