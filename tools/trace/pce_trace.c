@@ -300,8 +300,10 @@ static uint32_t crc32_update(uint32_t crc, const uint8_t *p, size_t n)
 static int save_ppm(const Pce *pce, const char *path)
 {
     FILE *f = fopen(path, "wb");
-    if (!f)
+    if (!f) {
+        printf("could not write the image %s\n", path); /* e.g. its folder does not exist */
         return 1;
+    }
     const Vce *v = &pce->vce;
     fprintf(f, "P6\n%d %d\n255\n", v->frame_width, v->frame_height);
     for (int i = 0; i < v->frame_width * v->frame_height; i++) {
@@ -320,8 +322,10 @@ int trace_save_ppm(const Pce *pce, const char *path)
 int trace_save_ppm_argb(const uint32_t *px, int w, int h, const char *path)
 {
     FILE *f = fopen(path, "wb");
-    if (!f)
+    if (!f) {
+        printf("could not write the image %s\n", path);
         return 1;
+    }
     fprintf(f, "P6\n%d %d\n255\n", w, h);
     for (int i = 0; i < w * h; i++) {
         uint8_t rgb[3] = { (uint8_t)(px[i] >> 16), (uint8_t)(px[i] >> 8), (uint8_t)px[i] };
